@@ -37,7 +37,7 @@ public interface BeanDefinition {
     /**
      * 工厂方法名
      */
-    String getFactoryMethoodName();
+    String getFactoryMethodName();
     /**
      * 初始化方法
      */
@@ -53,7 +53,7 @@ public interface BeanDefinition {
     default boolean validate(){
         // 没定义class,工厂bean或工厂方法没指定，则不合法。
         if(this.getBeanClass()==null){
-            if(StringUtils.isBlank(getFactoryBeanName()) || StringUtils.isBlank(getFactoryMethoodName())){
+            if(StringUtils.isBlank(getFactoryBeanName()) || StringUtils.isBlank(getFactoryMethodName())){
                 return  false;
             }
         }

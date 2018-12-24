@@ -1,5 +1,7 @@
 package cn.sanleny.spring.beans;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @Author: LG
  * @Date: 2018-12-24
@@ -8,44 +10,88 @@ package cn.sanleny.spring.beans;
  */
 public class GenericBeanDefinition implements BeanDefinition {
 
+    private Class<?> beanClass;
+    private String scope=BeanDefinition.SCOPE_SINGLETION;
+    private String factoryBeanName;
+    private String factoryMethodName;
+    private String initMethodName;
+    private String destroyMethodName;
+
+    public void setBeanClass(Class<?> beanClass) {
+        this.beanClass = beanClass;
+    }
+
+    public void setScope(String scope) {
+        if(StringUtils.isNotBlank(scope)) {
+            this.scope = scope;
+        }
+    }
+
+    public void setFactoryBeanName(String factoryBeanName) {
+        this.factoryBeanName = factoryBeanName;
+    }
+
+    public void setFactoryMethodName(String factoryMethodName) {
+        this.factoryMethodName = factoryMethodName;
+    }
+
+    public void setInitMethodName(String initMethodName) {
+        this.initMethodName = initMethodName;
+    }
+
+    public void setDestroyMethodName(String destroyMethodName) {
+        this.destroyMethodName = destroyMethodName;
+    }
 
     @Override
     public Class<?> getBeanClass() {
-        return null;
+        return this.beanClass;
     }
 
     @Override
     public String getScope() {
-        return null;
+        return this.scope;
     }
 
     @Override
     public boolean isSingleton() {
-        return false;
+        return BeanDefinition.SCOPE_SINGLETION.equals(this.scope);
     }
 
     @Override
     public boolean isPrototype() {
-        return false;
+        return BeanDefinition.SCOPE_PROTOTYPE.equals(this.scope);
     }
 
     @Override
     public String getFactoryBeanName() {
-        return null;
+        return this.factoryBeanName;
     }
 
     @Override
-    public String getFactoryMethoodName() {
-        return null;
+    public String getFactoryMethodName() {
+        return this.factoryMethodName;
     }
 
     @Override
     public String getInitMethodName() {
-        return null;
+        return this.initMethodName;
     }
 
     @Override
     public String getDestroyMethodName() {
-        return null;
+        return this.destroyMethodName;
+    }
+
+    @Override
+    public String toString() {
+        return "GenericBeanDefinition{" +
+                "beanClass=" + beanClass +
+                ", scope='" + scope + '\'' +
+                ", factoryBeanName='" + factoryBeanName + '\'' +
+                ", factoryMethodName='" + factoryMethodName + '\'' +
+                ", initMethodName='" + initMethodName + '\'' +
+                ", destroyMethodName='" + destroyMethodName + '\'' +
+                '}';
     }
 }
