@@ -1,0 +1,67 @@
+package cn.sanleny.spring.beans;
+
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ * bean 定义接口
+ * @Author: LG
+ * @Date: 2018-12-24
+ * @Description: cn.sanleny.beans
+ * @Version: 1.0
+ */
+public interface BeanDefinition {
+
+    String SCOPE_SINGLETION="singleton";
+    String SCOPE_PROTOTYPE="prototype";
+
+    /**
+     * 类
+     */
+    Class<?> getBeanClass();
+    /**
+     * Scope
+     */
+    String getScope();
+    /**
+     * 是否单例
+     */
+    boolean isSingleton();
+    /**
+     * 是否原型
+     */
+    boolean isPrototype();
+    /**
+     * 工厂bean名
+     */
+    String getFactoryBeanName();
+    /**
+     * 工厂方法名
+     */
+    String getFactoryMethoodName();
+    /**
+     * 初始化方法
+     */
+    String getInitMethodName();
+    /**
+     * 销毁方法
+     */
+    String getDestroyMethodName();
+
+    /**
+     * 校验bean定义的合法性
+     */
+    default boolean validate(){
+        // 没定义class,工厂bean或工厂方法没指定，则不合法。
+        if(this.getBeanClass()==null){
+            if(StringUtils.isBlank(getFactoryBeanName()) || StringUtils.isBlank(getFactoryMethoodName())){
+                return  false;
+            }
+        }
+
+        // 定义了类，又定义工厂bean，不合法
+        if(this.getBeanClass()!=null && StringUtils.isNotBlank(getFactoryBeanName())){
+            return false;
+        }
+        return true;
+    }
+}
