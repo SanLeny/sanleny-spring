@@ -1,9 +1,6 @@
 package cn.sanleny.spring.test;
 
-import cn.sanleny.spring.beans.BeanDefinition;
-import cn.sanleny.spring.beans.BeanDefinitionRegistException;
-import cn.sanleny.spring.beans.DefaultBeanFactory;
-import cn.sanleny.spring.beans.GenericBeanDefinition;
+import cn.sanleny.spring.beans.*;
 import cn.sanleny.spring.samples.ABean;
 import cn.sanleny.spring.samples.ABeanFactory;
 import org.junit.AfterClass;
@@ -19,6 +16,7 @@ import org.junit.Test;
 public class DefaultBeanFactoryTest {
 
     static DefaultBeanFactory defaultBeanFactory=new DefaultBeanFactory();
+//    static PreBuildBeanFactory defaultBeanFactory=new PreBuildBeanFactory();
 
     @Test
     public void testRegistry() throws BeanDefinitionRegistException {
@@ -47,9 +45,7 @@ public class DefaultBeanFactoryTest {
         GenericBeanDefinition gb=new GenericBeanDefinition();
         gb.setBeanClass(ABeanFactory.class);
         String fname="factory";
-        defaultBeanFactory.registryBeanDefinition(fname,gb);
-
-        System.out.println("----------------------------");
+        defaultBeanFactory.registryBeanDefinition(fname,gb);//注册beanFactory
 
         gb = new GenericBeanDefinition();
         gb.setFactoryBeanName(fname);
@@ -79,7 +75,6 @@ public class DefaultBeanFactoryTest {
             ab.doSomthing();
         }
         defaultBeanFactory.close();
-
     }
 
 
