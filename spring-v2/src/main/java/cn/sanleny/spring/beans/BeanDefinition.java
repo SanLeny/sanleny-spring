@@ -2,6 +2,10 @@ package cn.sanleny.spring.beans;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.List;
+
 /**
  * bean 定义接口
  * @Author: LG
@@ -64,4 +68,39 @@ public interface BeanDefinition {
         }
         return true;
     }
+
+    /**
+     * <p>获得构造参数定义</p>
+     * @since v2
+     * @return
+     */
+    List<?>  getConstructorArgumentValues();
+
+    /* 下面的四个方法是供beanFactory中使用的 */
+
+    /**
+     * @since v2
+     * @return
+     */
+    Constructor<?> getConstgructor();
+
+    /**
+     * @since v2
+     * @param constructor
+     */
+    void setConstructor(Constructor<?> constructor);
+
+    /**
+     * @since v2
+     * @return
+     */
+    Method getFactoryMethod();
+
+    /**
+     * @since v2
+     * @param factoryMethod
+     */
+    void setFactoryMethod(Method factoryMethod);
+
+
 }

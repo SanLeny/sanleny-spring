@@ -2,6 +2,10 @@ package cn.sanleny.spring.beans;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.List;
+
 /**
  * @Author: LG
  * @Date: 2018-12-24
@@ -16,6 +20,9 @@ public class GenericBeanDefinition implements BeanDefinition {
     private String factoryMethodName;
     private String initMethodName;
     private String destroyMethodName;
+    private List<?> constructorArgumentValues;
+    private Constructor<?> constructor;
+    private Method factoryMethod;
 
     public void setBeanClass(Class<?> beanClass) {
         this.beanClass = beanClass;
@@ -41,6 +48,10 @@ public class GenericBeanDefinition implements BeanDefinition {
 
     public void setDestroyMethodName(String destroyMethodName) {
         this.destroyMethodName = destroyMethodName;
+    }
+
+    public void setConstructorArgumentValues(List<?> constructorArgumentValues) {
+        this.constructorArgumentValues = constructorArgumentValues;
     }
 
     @Override
@@ -81,6 +92,31 @@ public class GenericBeanDefinition implements BeanDefinition {
     @Override
     public String getDestroyMethodName() {
         return this.destroyMethodName;
+    }
+
+    @Override
+    public List<?> getConstructorArgumentValues() {
+        return this.constructorArgumentValues;
+    }
+
+    @Override
+    public Constructor<?> getConstgructor() {
+        return this.constructor;
+    }
+
+    @Override
+    public void setConstructor(Constructor<?> constructor) {
+        this.constructor=constructor;
+    }
+
+    @Override
+    public Method getFactoryMethod() {
+        return this.factoryMethod;
+    }
+
+    @Override
+    public void setFactoryMethod(Method factoryMethod) {
+        this.factoryMethod=factoryMethod;
     }
 
     @Override

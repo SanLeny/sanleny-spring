@@ -1,13 +1,13 @@
 package cn.sanleny.spring.beans;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -171,5 +171,37 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
 
         }
 
+    }
+
+    private Object[] getConstructorArgumentValues(BeanDefinition bd) throws Exception {
+        return this.getRealValues(bd.getConstructorArgumentValues());
+    }
+
+    private Object[] getRealValues(List<?> defs) throws Exception {
+        if(CollectionUtils.isEmpty(defs)){
+            return null;
+        }
+        Object[] values=new Object[defs.size()];
+        int i=0;
+        Object value=null;
+        for (Object obj :defs) {
+            if (obj==null){
+                value=null;
+            }else if(obj instanceof  BeanReference){
+                value=this.doGetBean(((BeanReference) obj).getBeanName());
+            }else if(obj instanceof Object[]){
+                // TODO 处理数组中的bean引用
+            }else if (obj instanceof Collection) {
+                // TODO 处理集合中的bean引用
+            } else if (obj instanceof Properties) {
+                // TODO 处理properties中的bean引用
+            } else if (obj instanceof Map) {
+                // TODO 处理Map中的bean引用
+            } else {
+                value=obj;
+            }
+            values[i++]=value;
+        }
+        return values;
     }
 }
