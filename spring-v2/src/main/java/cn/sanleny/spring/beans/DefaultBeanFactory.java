@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -99,6 +100,9 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
         // 创建好实例后，移除创建中记录
         ingBeans.remove(beanName);
 
+        //  给入属性依赖
+        this.setPropertyDIValues(beanDefinition, instance);
+
         // 执行初始化方法
         this.doInit(beanDefinition,instance);
 
@@ -107,6 +111,41 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
         }
 
         return instance;
+    }
+
+    private void setPropertyDIValues(BeanDefinition beanDefinition, Object instance) throws Exception {
+        if(CollectionUtils.isEmpty(beanDefinition.getPropertyValues())){
+            return ;
+        }
+
+        for (PropertyValue pv : beanDefinition.getPropertyValues()) {
+            if (StringUtils.isBlank(pv.getName())) {
+                continue;
+            }
+            Class<?> clazz = instance.getClass();
+            Field p = clazz.getDeclaredField(pv.getName());
+            p.setAccessible(true);//设置可访问权限，即使没有get/set 也可以赋值
+
+            Object rv = pv.getValue();
+            Object v = null;
+            if (rv == null) {
+                v = null;
+            } else if (rv instanceof BeanReference) {
+                v = this.doGetBean(((BeanReference) rv).getBeanName());
+            } else if (rv instanceof Object[]) {
+                // TODO 处理集合中的bean引用
+            } else if (rv instanceof Collection) {
+                // TODO 处理集合中的bean引用
+            } else if (rv instanceof Properties) {
+                // TODO 处理properties中的bean引用
+            } else if (rv instanceof Map) {
+                // TODO 处理Map中的bean引用
+            } else {
+                v = rv;
+            }
+            p.set(instance, v);
+
+        }
     }
 
     /**

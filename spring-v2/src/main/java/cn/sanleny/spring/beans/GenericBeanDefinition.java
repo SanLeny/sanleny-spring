@@ -23,6 +23,7 @@ public class GenericBeanDefinition implements BeanDefinition {
     private List<?> constructorArgumentValues;
     private Constructor<?> constructor;
     private Method factoryMethod;
+    private List<PropertyValue> propertyValues;
 
     public void setBeanClass(Class<?> beanClass) {
         this.beanClass = beanClass;
@@ -52,6 +53,10 @@ public class GenericBeanDefinition implements BeanDefinition {
 
     public void setConstructorArgumentValues(List<?> constructorArgumentValues) {
         this.constructorArgumentValues = constructorArgumentValues;
+    }
+
+    public void setPropertyValues(List<PropertyValue> propertyValues) {
+        this.propertyValues = propertyValues;
     }
 
     @Override
@@ -117,6 +122,11 @@ public class GenericBeanDefinition implements BeanDefinition {
     @Override
     public void setFactoryMethod(Method factoryMethod) {
         this.factoryMethod=factoryMethod;
+    }
+
+    @Override
+    public List<PropertyValue> getPropertyValues() {
+        return this.propertyValues;
     }
 
     @Override

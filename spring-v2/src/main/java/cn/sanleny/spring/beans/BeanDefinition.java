@@ -102,5 +102,9 @@ public interface BeanDefinition {
      */
     void setFactoryMethod(Method factoryMethod);
 
+    /**
+     * @since v2
+     */
+    List<PropertyValue> getPropertyValues();
 
 }

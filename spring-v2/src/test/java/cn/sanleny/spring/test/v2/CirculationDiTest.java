@@ -38,7 +38,7 @@ public class CirculationDiTest {
         gb.setConstructorArgumentValues(args);
         bf.registryBeanDefinition("ebean",gb);
 
-        bf.preInstantiateSingletons();
+        bf.preInstantiateSingletons();//实例化
 
     }
 
