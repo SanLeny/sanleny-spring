@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -110,18 +111,81 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
      * 构造方法来构造对象
      * @param beanDefinition
      * @return
-     * @throws NoSuchMethodException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     * @throws InstantiationException
+     * @throws Exception
      */
-    private Object createInstanceByConstructor(BeanDefinition beanDefinition) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private Object createInstanceByConstructor(BeanDefinition beanDefinition) throws Exception {
         try {
+            Object[] args = this.getConstructorArgumentValues(beanDefinition);//获取构造参数
+            if(args !=null){
+                // 构造方法有参数
+                // 决定构造方法
+                return this.determineConstructor(beanDefinition,args).newInstance(args);
+            }
 //            return beanDefinition.getBeanClass().newInstance();//此方法在jdk9中已不推荐使用
             return beanDefinition.getBeanClass().getDeclaredConstructor().newInstance();
         } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             System.out.println("创建bean的实例异常,beanDefinition：" +beanDefinition+"---"+e);
             throw e;
+        }
+    }
+
+    /**
+     * 决定构造方法
+     * @param bd
+     * @param args
+     * @return
+     * @throws Exception
+     */
+    private Constructor<?> determineConstructor(BeanDefinition bd, Object[] args) throws Exception {
+        Constructor<?> ct = null;
+        if (args == null) {
+            return bd.getBeanClass().getConstructor(null);
+        }
+
+        // 对于原型bean,从第二次开始获取bean实例时，可直接获得第一次缓存的构造方法。
+        ct=bd.getConstgructor();
+        if(ct !=null){
+            return ct;
+        }
+
+
+        // 根据参数类型获取精确匹配的构造方法
+        Class<?>[] paramTypes= new Class<?>[args.length];
+        for (int i = 0; i < args.length; i++) {
+            paramTypes[i]=args[i].getClass();
+        }
+        try {
+            ct=bd.getBeanClass().getConstructor(paramTypes);
+        } catch (Exception e) {
+            // 这个异常不需要处理
+        }
+
+        if(ct == null){
+            // 没有精确参数类型匹配的，则遍历匹配所有的构造方法
+            // 判断逻辑：先判断参数数量，再依次比对形参类型与实参类型
+            out:for (Constructor constructor:bd.getBeanClass().getConstructors()) {
+                Class<?>[] parameterTypes = constructor.getParameterTypes();
+                if(parameterTypes.length==args.length){
+                    for (int i = 0; i < parameterTypes.length; i++) {
+                        if(!parameterTypes[i].isAssignableFrom(args[i].getClass())){
+                            continue out;
+                        }
+                    }
+                    ct=constructor;
+                    break out;
+                }
+            }
+        }
+
+        if(ct != null){
+            // 对于原型bean,可以缓存找到的构造方法，方便下次构造实例对象。在BeanDefinfition中获取设置所用构造方法的方法。
+            // 同时在上面增加从beanDefinition中获取的逻辑。
+            if(bd.isPrototype()){
+                bd.setConstructor(ct);
+            }
+            return ct;
+        }else{
+            throw new Exception("不存在对应的构造方法 "+bd);
         }
     }
 
@@ -133,11 +197,15 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      */
-    private Object createInstanceByStaticFactoryMethod(BeanDefinition beanDefinition) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    private Object createInstanceByStaticFactoryMethod(BeanDefinition beanDefinition) throws Exception {
         Class<?> beanClass = beanDefinition.getBeanClass();
-        Method method = beanClass.getMethod(beanDefinition.getFactoryMethodName(), new Class<?>[]{});
-        return method.invoke(beanClass,new Object[]{});
+        Object[] args =this.getConstructorArgumentValues(beanDefinition);//获取构造参数
+//        Method method = beanClass.getMethod(beanDefinition.getFactoryMethodName(), new Class<?>[]{});
+        //决定工厂方法
+        Method method=this.determineFactoryMethod(beanDefinition,args,null);
+        return method.invoke(beanClass,args);
     }
+
 
     /**
      * 工厂bean方式来构造对象
@@ -147,8 +215,79 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
      */
     private Object createInstanceByFactoryBean(BeanDefinition beanDefinition) throws Exception {
         Object factoryBean = this.doGetBean(beanDefinition.getFactoryBeanName());
-        Method method = factoryBean.getClass().getMethod(beanDefinition.getFactoryMethodName(), new Class<?>[]{});
-        return method.invoke(factoryBean,new Object[]{});
+        Object[] args =this.getConstructorArgumentValues(beanDefinition);//获取构造参数
+//        Method method = factoryBean.getClass().getMethod(beanDefinition.getFactoryMethodName(), new Class<?>[]{});
+        //决定工厂方法
+        Method method=this.determineFactoryMethod(beanDefinition,args,factoryBean.getClass());
+        return method.invoke(factoryBean,args);
+    }
+
+    /**
+     * 决定工厂方法
+     * @param bd
+     * @param args
+     * @param type
+     * @return
+     */
+    private Method determineFactoryMethod(BeanDefinition bd, Object[] args,  Class<?> type) throws Exception {
+        if(type == null){
+            type = bd.getBeanClass();
+        }
+
+        String methodName = bd.getFactoryMethodName();
+        if(args == null){
+            return type.getMethod(methodName, null);
+        }
+
+        Method m = null;
+        // 对于原型bean,从第二次开始获取bean实例时，可直接获得第一次缓存的构造方法。
+        m = bd.getFactoryMethod();
+        if(m != null){
+            return m;
+        }
+
+        // 根据参数类型获取精确匹配的方法
+        Class<?>[] paramTypes=new Class<?>[args.length];
+        for (int i = 0; i < args.length; i++) {
+            paramTypes[i]=args[i].getClass();
+        }
+        try {
+            m = type.getMethod(methodName, paramTypes);
+        }catch (Exception e){
+            // 这个异常不需要处理
+        }
+
+        if(m == null){
+            // 没有精确参数类型匹配的，则遍历匹配所有的方法
+            // 判断逻辑：先判断参数数量，再依次比对形参类型与实参类型
+            out:for (Method method:type.getMethods()) {
+                if (!method.getName().equals(methodName)) {
+                    continue;
+                }
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if( parameterTypes.length==args.length ){
+                    for (int i = 0; i < parameterTypes.length; i++) {
+                        if(!parameterTypes[i].isAssignableFrom(args[i].getClass())){
+                            continue out;
+                        }
+                        m = method;
+                        break out;
+                    }
+                }
+            }
+        }
+
+        if (m != null) {
+            // 对于原型bean,可以缓存找到的方法，方便下次构造实例对象。在BeanDefinfition中获取设置所用方法的方法。
+            // 同时在上面增加从beanDefinition中获取的逻辑。
+            if (bd.isPrototype()) {
+                bd.setFactoryMethod(m);
+            }
+            return m;
+        } else {
+            throw new Exception("不存在对应的构造方法！" + bd);
+        }
+
     }
 
     @Override
