@@ -1,6 +1,5 @@
 package cn.sanleny.spring.test.v2;
 
-import cn.sanleny.spring.beans.BeanDefinitionRegistException;
 import cn.sanleny.spring.beans.BeanReference;
 import cn.sanleny.spring.beans.GenericBeanDefinition;
 import cn.sanleny.spring.beans.PreBuildBeanFactory;

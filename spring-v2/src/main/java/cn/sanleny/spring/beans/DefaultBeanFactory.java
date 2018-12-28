@@ -23,6 +23,7 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
 
     private Map<String,Object> beanMap=new ConcurrentHashMap<>(256);
 
+    private ThreadLocal<Set<String>> buildingBeans = new ThreadLocal<>();
 
     @Override
     public void registryBeanDefinition(String beanName, BeanDefinition beanDefinition) throws BeanDefinitionRegistException {
@@ -64,7 +65,22 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
             return instance;
         }
         BeanDefinition beanDefinition = this.getBeanDefinition(beanName);
-        Objects.requireNonNull(beanDefinition,"beanDefinition不能为空");
+        Objects.requireNonNull(beanDefinition,"不存在name为：" + beanName + " beean 定义！");
+
+        // 记录正在创建的Bean
+        Set<String> ingBeans = this.buildingBeans.get();
+        if (ingBeans == null) {
+            ingBeans = new HashSet<>();
+            this.buildingBeans.set(ingBeans);
+        }
+
+        // 检测循环依赖
+        if (ingBeans.contains(beanName)) {
+            throw new Exception(beanName + " 循环依赖！" + ingBeans);
+        }
+
+        // 记录正在创建的Bean
+        ingBeans.add(beanName);
 
         Class<?> beanClass = beanDefinition.getBeanClass();
         if(beanClass !=null){
@@ -79,6 +95,10 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
             // 工厂bean方式来构造对象
             instance = this.createInstanceByFactoryBean(beanDefinition);
         }
+
+        // 创建好实例后，移除创建中记录
+        ingBeans.remove(beanName);
+
         // 执行初始化方法
         this.doInit(beanDefinition,instance);
 
