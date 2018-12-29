@@ -11,6 +11,7 @@
     <modules>
         <module>spring-v1</module>
         <module>spring-v2</module>
+        <module>spring-v3</module>
     </modules>
 
     <properties>
