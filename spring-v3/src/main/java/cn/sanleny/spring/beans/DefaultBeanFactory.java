@@ -26,6 +26,13 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
 
     private ThreadLocal<Set<String>> buildingBeans = new ThreadLocal<>();
 
+    private List<BeanPostProcessor> beanPostProcessors=Collections.synchronizedList(new ArrayList<>());
+
+    @Override
+    public void registerBeanPostProcessor(BeanPostProcessor beanPostProcessor) {
+        this.beanPostProcessors.add(beanPostProcessor);
+    }
+
     @Override
     public void registryBeanDefinition(String beanName, BeanDefinition beanDefinition) throws BeanDefinitionRegistException {
         Objects.requireNonNull(beanName,"注册bean需要给入beanName");
@@ -54,11 +61,11 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
     }
 
     @Override
-    public Object getBean(String beanName) throws Exception {
+    public Object getBean(String beanName) throws Throwable {
         return this.doGetBean(beanName);
     }
 
-    protected Object doGetBean(String beanName) throws Exception {
+    protected Object doGetBean(String beanName) throws Throwable {
         Objects.requireNonNull(beanName,"beanName不能为空");
 
         Object instance=beanMap.get(beanName);
@@ -103,8 +110,14 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
         //  给入属性依赖
         this.setPropertyDIValues(beanDefinition, instance);
 
+        //应用bean初始化前的处理
+        instance=this.applyPostProcessBeforeInitialization(instance,beanName);
+
         // 执行初始化方法
         this.doInit(beanDefinition,instance);
+
+        //应用bean初始化后的处理
+        instance=this.applyPostProcessAfterInitialization(instance,beanName);
 
         if(beanDefinition.isSingleton()){
             beanMap.put(beanName,instance);
@@ -113,7 +126,23 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
         return instance;
     }
 
-    private void setPropertyDIValues(BeanDefinition beanDefinition, Object instance) throws Exception {
+    //应用bean初始化前的处理
+    private Object applyPostProcessBeforeInitialization(Object bean, String beanName) throws Throwable {
+        for (BeanPostProcessor beanPostProcessor:beanPostProcessors) {
+            bean = beanPostProcessor.postProcessBeforeInitialization(bean, beanName);
+        }
+        return bean;
+    }
+
+    //应用bean初始化后的处理
+    private Object applyPostProcessAfterInitialization(Object bean, String beanName) throws Throwable {
+        for (BeanPostProcessor beanPostProcessor:beanPostProcessors) {
+            bean = beanPostProcessor.postProcessAfterInitialization(bean, beanName);
+        }
+        return bean;
+    }
+
+    private void setPropertyDIValues(BeanDefinition beanDefinition, Object instance) throws Throwable {
         if(CollectionUtils.isEmpty(beanDefinition.getPropertyValues())){
             return ;
         }
@@ -165,14 +194,13 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
 
     }
 
-
     /**
      * 构造方法来构造对象
      * @param beanDefinition
      * @return
      * @throws Exception
      */
-    private Object createInstanceByConstructor(BeanDefinition beanDefinition) throws Exception {
+    private Object createInstanceByConstructor(BeanDefinition beanDefinition) throws Throwable {
         try {
             Object[] args = this.getConstructorArgumentValues(beanDefinition);//获取构造参数
             if(args !=null){
@@ -256,7 +284,7 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      */
-    private Object createInstanceByStaticFactoryMethod(BeanDefinition beanDefinition) throws Exception {
+    private Object createInstanceByStaticFactoryMethod(BeanDefinition beanDefinition) throws Throwable {
         Class<?> beanClass = beanDefinition.getBeanClass();
         Object[] args =this.getConstructorArgumentValues(beanDefinition);//获取构造参数
 //        Method method = beanClass.getMethod(beanDefinition.getFactoryMethodName(), new Class<?>[]{});
@@ -272,7 +300,7 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
      * @return
      * @throws Exception
      */
-    private Object createInstanceByFactoryBean(BeanDefinition beanDefinition) throws Exception {
+    private Object createInstanceByFactoryBean(BeanDefinition beanDefinition) throws Throwable {
         Object factoryBean = this.doGetBean(beanDefinition.getFactoryBeanName());
         Object[] args =this.getConstructorArgumentValues(beanDefinition);//获取构造参数
 //        Method method = factoryBean.getClass().getMethod(beanDefinition.getFactoryMethodName(), new Class<?>[]{});
@@ -371,11 +399,11 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
 
     }
 
-    private Object[] getConstructorArgumentValues(BeanDefinition bd) throws Exception {
+    private Object[] getConstructorArgumentValues(BeanDefinition bd) throws Throwable {
         return this.getRealValues(bd.getConstructorArgumentValues());
     }
 
-    private Object[] getRealValues(List<?> defs) throws Exception {
+    private Object[] getRealValues(List<?> defs) throws Throwable {
         if(CollectionUtils.isEmpty(defs)){
             return null;
         }

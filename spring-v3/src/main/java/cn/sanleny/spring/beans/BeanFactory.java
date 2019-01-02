@@ -15,5 +15,12 @@ public interface BeanFactory {
      * @return bean 实例
      * @throws Exception
      */
-    Object getBean(String name) throws Exception;
+    Object getBean(String name) throws Throwable;
+
+    /**
+     * 注册 BeanPostProcessor
+     * @since v3
+     * @param beanPostProcessor
+     */
+    void registerBeanPostProcessor(BeanPostProcessor beanPostProcessor);
 }
