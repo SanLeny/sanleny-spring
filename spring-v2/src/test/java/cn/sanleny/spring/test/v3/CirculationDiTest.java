@@ -1,4 +1,4 @@
-package cn.sanleny.spring.test.v2;
+package cn.sanleny.spring.test.v3;
 
 import cn.sanleny.spring.beans.BeanReference;
 import cn.sanleny.spring.beans.GenericBeanDefinition;

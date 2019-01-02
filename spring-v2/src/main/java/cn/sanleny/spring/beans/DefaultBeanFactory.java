@@ -198,7 +198,7 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
     private Constructor<?> determineConstructor(BeanDefinition bd, Object[] args) throws Exception {
         Constructor<?> ct = null;
         if (args == null) {
-            return bd.getBeanClass().getConstructor(null);
+            return bd.getBeanClass().getConstructor(new Class<?>[]{});
         }
 
         // 对于原型bean,从第二次开始获取bean实例时，可直接获得第一次缓存的构造方法。
@@ -295,7 +295,7 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
 
         String methodName = bd.getFactoryMethodName();
         if(args == null){
-            return type.getMethod(methodName, null);
+            return type.getMethod(methodName, new Class<?>[]{});
         }
 
         Method m = null;
