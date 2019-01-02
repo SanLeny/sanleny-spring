@@ -99,8 +99,8 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
     private void doInit(BeanDefinition beanDefinition, Object instance) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         if(StringUtils.isNotBlank(beanDefinition.getInitMethodName())){
-            Method method = instance.getClass().getMethod(beanDefinition.getInitMethodName(), null);
-            method.invoke(instance, null);
+            Method method = instance.getClass().getMethod(beanDefinition.getInitMethodName(), new Class[]{});
+            method.invoke(instance, new Object[]{});
         }
 
     }
@@ -135,8 +135,8 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
      */
     private Object createInstanceByStaticFactoryMethod(BeanDefinition beanDefinition) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Class<?> beanClass = beanDefinition.getBeanClass();
-        Method method = beanClass.getMethod(beanDefinition.getFactoryMethodName(), null);
-        return method.invoke(beanClass,null);
+        Method method = beanClass.getMethod(beanDefinition.getFactoryMethodName(), new Class<?>[]{});
+        return method.invoke(beanClass,new Object[]{});
     }
 
     /**
@@ -147,8 +147,8 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
      */
     private Object createInstanceByFactoryBean(BeanDefinition beanDefinition) throws Exception {
         Object factoryBean = this.doGetBean(beanDefinition.getFactoryBeanName());
-        Method method = factoryBean.getClass().getMethod(beanDefinition.getFactoryMethodName(), null);
-        return method.invoke(factoryBean,null);
+        Method method = factoryBean.getClass().getMethod(beanDefinition.getFactoryMethodName(), new Class[]{});
+        return method.invoke(factoryBean,new Object[]{});
     }
 
     @Override
@@ -161,8 +161,8 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
             if(beanDefinition.isSingleton() && StringUtils.isNotBlank(beanDefinition.getInitMethodName())){
                 Object instance = this.beanMap.get(beanName);
                 try {
-                    Method  method = instance.getClass().getMethod(beanDefinition.getDestroyMethodName(), null);
-                    method.invoke(instance,null);
+                    Method  method = instance.getClass().getMethod(beanDefinition.getDestroyMethodName(), new Class[]{});
+                    method.invoke(instance,new Object[]{});
                 } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                     System.out.println("执行bean[" + beanName + "] " + beanDefinition + " 的 销毁方法异常！--"+e);
                 }
