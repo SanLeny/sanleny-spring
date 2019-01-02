@@ -24,6 +24,7 @@ public class GenericBeanDefinition implements BeanDefinition {
     private Constructor<?> constructor;
     private Method factoryMethod;
     private List<PropertyValue> propertyValues;
+    private ThreadLocal<Object[]> realConstructorArgumentValues = new ThreadLocal<>();
 
     public void setBeanClass(Class<?> beanClass) {
         this.beanClass = beanClass;
@@ -127,6 +128,16 @@ public class GenericBeanDefinition implements BeanDefinition {
     @Override
     public List<PropertyValue> getPropertyValues() {
         return this.propertyValues;
+    }
+
+    @Override
+    public Object[] getConstructorArgumentRealValues() {
+        return realConstructorArgumentValues.get();
+    }
+
+    @Override
+    public void setConstructorArgumentRealValues(Object[] values) {
+        realConstructorArgumentValues.set(values);
     }
 
     @Override

@@ -31,6 +31,9 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
     @Override
     public void registerBeanPostProcessor(BeanPostProcessor beanPostProcessor) {
         this.beanPostProcessors.add(beanPostProcessor);
+        if (beanPostProcessor instanceof BeanFactoryAware) {
+            ((BeanFactoryAware) beanPostProcessor).setBeanFactory(this);
+        }
     }
 
     @Override
@@ -203,10 +206,16 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
     private Object createInstanceByConstructor(BeanDefinition beanDefinition) throws Throwable {
         try {
             Object[] args = this.getConstructorArgumentValues(beanDefinition);//获取构造参数
-            if(args !=null){
-                // 构造方法有参数
+            if(args !=null){// 构造方法有参数
+                /**
+                 * @since v3
+                 */
+                beanDefinition.setConstructorArgumentRealValues(args);
                 // 决定构造方法
-                return this.determineConstructor(beanDefinition,args).newInstance(args);
+                Constructor<?> constructor = this.determineConstructor(beanDefinition, args);
+                // 缓存构造函数由determineConstructor 中移到了这里，无论原型否都缓存，因为后面AOP需要用
+                beanDefinition.setConstructor(constructor);
+                return constructor.newInstance(args);
             }
 //            return beanDefinition.getBeanClass().newInstance();//此方法在jdk9中已不推荐使用
             return beanDefinition.getBeanClass().getDeclaredConstructor().newInstance();
@@ -226,7 +235,7 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
     private Constructor<?> determineConstructor(BeanDefinition bd, Object[] args) throws Exception {
         Constructor<?> ct = null;
         if (args == null) {
-            return bd.getBeanClass().getConstructor(null);
+            return bd.getBeanClass().getConstructor(new Class<?>[]{});
         }
 
         // 对于原型bean,从第二次开始获取bean实例时，可直接获得第一次缓存的构造方法。
@@ -234,8 +243,6 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
         if(ct !=null){
             return ct;
         }
-
-
         // 根据参数类型获取精确匹配的构造方法
         Class<?>[] paramTypes= new Class<?>[args.length];
         for (int i = 0; i < args.length; i++) {
@@ -265,11 +272,14 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
         }
 
         if(ct != null){
+            /**
+             * @since v3 转移到上一个方法里
+             */
             // 对于原型bean,可以缓存找到的构造方法，方便下次构造实例对象。在BeanDefinfition中获取设置所用构造方法的方法。
             // 同时在上面增加从beanDefinition中获取的逻辑。
-            if(bd.isPrototype()){
-                bd.setConstructor(ct);
-            }
+//            if(bd.isPrototype()){
+//                bd.setConstructor(ct);
+//            }
             return ct;
         }else{
             throw new Exception("不存在对应的构造方法 "+bd);
@@ -323,7 +333,7 @@ public class DefaultBeanFactory implements BeanFactory,BeanDefinitionRegistry, C
 
         String methodName = bd.getFactoryMethodName();
         if(args == null){
-            return type.getMethod(methodName, null);
+            return type.getMethod(methodName, new Class<?>[]{});
         }
 
         Method m = null;

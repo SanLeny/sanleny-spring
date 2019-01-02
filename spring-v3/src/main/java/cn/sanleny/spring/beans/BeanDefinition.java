@@ -107,4 +107,14 @@ public interface BeanDefinition {
      */
     List<PropertyValue> getPropertyValues();
 
+    /**
+     * @since v3
+     */
+    public Object[] getConstructorArgumentRealValues();
+
+    /**
+     * @since v3
+     */
+    public void setConstructorArgumentRealValues(Object[] values);
+
 }

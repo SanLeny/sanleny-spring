@@ -23,13 +23,13 @@ public class PreBuildBeanFactory extends DefaultBeanFactory{
         }
     }
 
-    public void preInstantiateSingletons() throws Exception {
+    public void preInstantiateSingletons() throws Throwable {
         synchronized (beanNames){
             for(String beanName:beanNames){
                 BeanDefinition beanDefinition = this.getBeanDefinition(beanName);
                 if(beanDefinition.isSingleton()){
                     this.doGetBean(beanName);
-                    System.out.println("preInstantiate: name=" + beanName + " " + beanDefinition);
+//                    System.out.println("preInstantiate: name=" + beanName + " " + beanDefinition);
                 }
             }
         }

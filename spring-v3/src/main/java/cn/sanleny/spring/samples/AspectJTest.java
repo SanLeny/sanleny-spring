@@ -22,7 +22,7 @@ public class AspectJTest {
         TypePatternMatcher tpm = pp.parseTypePattern("cn.sanleny.spring..*");
         PointcutExpression pe = pp.parsePointcutExpression("execution(* cn.sanleny.spring.samples.Driver.start*(..))");
         Class<?> cl = CCBean.class;
-        Method aMethod = cl.getMethod("getName", null);
+        Method aMethod = cl.getMethod("getName", new Class<?>[]{});
         ShadowMatch sm = pe.matchesMethodExecution(aMethod);
         System.out.println("是否匹配方法："+sm.alwaysMatches());
 

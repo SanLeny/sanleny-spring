@@ -40,4 +40,8 @@ public class ABean {
     public void destroy() {
         System.out.println("ABean.destroy() 执行了");
     }
+
+    public void sayHello() {
+        System.out.println("Hello, ABean ！");
+    }
 }
