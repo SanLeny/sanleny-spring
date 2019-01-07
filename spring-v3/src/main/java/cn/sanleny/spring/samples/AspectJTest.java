@@ -20,17 +20,25 @@ public class AspectJTest {
         PointcutParser pp = PointcutParser
                 .getPointcutParserSupportingAllPrimitivesAndUsingContextClassloaderForResolution();
         TypePatternMatcher tpm = pp.parseTypePattern("cn.sanleny.spring..*");
-        PointcutExpression pe = pp.parsePointcutExpression("execution(* cn.sanleny.spring.samples.Driver.start*(..))");
+//        PointcutExpression pe = pp.parsePointcutExpression("execution(* cn.sanleny.spring.samples.Driver.start*(..))");
+//        PointcutExpression pe = pp.parsePointcutExpression("execution(* cn.sanleny..*.start*(..))");
+//        PointcutExpression pe = pp.parsePointcutExpression("execution(* cn.sanleny..*Driver.*(..))");
+        PointcutExpression pe = pp.parsePointcutExpression("execution(* cn.sanleny..*Driver.start*(..))");
         Class<?> cl = CCBean.class;
-        Method aMethod = cl.getMethod("getName", new Class<?>[]{});
+        Method aMethod = cl.getMethod("start", new Class<?>[]{});
         ShadowMatch sm = pe.matchesMethodExecution(aMethod);
         System.out.println("是否匹配方法："+sm.alwaysMatches());
 
-        System.out.println("是否匹配类CCBean.class :"+pe.couldMatchJoinPointsInType(cl));
-        System.out.println("是否匹配类DefaultBeanFactory.class :"+pe.couldMatchJoinPointsInType(DefaultBeanFactory.class));
+        Class<?> c2 = CCBean.class;
+        Method clMethod = c2.getMethod("stop", new Class<?>[]{});
+        ShadowMatch shadowMatch = pe.matchesMethodExecution(clMethod);
+        System.out.println("是否匹配方法："+shadowMatch.alwaysMatches());
 
-        for (Method m : cl.getMethods()) {
-            System.out.println(m.getName());
-        }
+//        System.out.println("是否匹配类CCBean.class :"+pe.couldMatchJoinPointsInType(cl));
+//        System.out.println("是否匹配类DefaultBeanFactory.class :"+pe.couldMatchJoinPointsInType(DefaultBeanFactory.class));
+
+//        for (Method m : cl.getMethods()) {
+//            System.out.println(m.getName());
+//        }
     }
 }
