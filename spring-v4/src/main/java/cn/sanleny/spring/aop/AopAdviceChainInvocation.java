@@ -18,7 +18,7 @@ public class AopAdviceChainInvocation {
     private static Method invokeMethod;
     static {
         try {
-            invokeMethod = AopAdviceChainInvocation.class.getMethod("invoke", null);
+            invokeMethod = AopAdviceChainInvocation.class.getMethod("invoke", new Class[]{});
         } catch (NoSuchMethodException | SecurityException e) {
             e.printStackTrace();
         }
