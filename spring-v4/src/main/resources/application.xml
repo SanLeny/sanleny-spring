@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+
+    <bean id="abean" class="cn.sanleny.spring.samples.ABean"
+        init-method="init" destroy-method="destroy">
+        <constructor-arg type="String" value="abean01"/>
+        <constructor-arg ref="cbean"/>
+    </bean>
+
+    <bean id="cbean" class="cn.sanleny.spring.samples.CBean">
+        <constructor-arg type="String" value="cbean01"/>
+    </bean>
+
+</beans>
